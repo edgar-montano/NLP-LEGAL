@@ -59,14 +59,15 @@ def main():
         					phrase += token[0] + " "
         			phrase = phrase[:-1].encode('utf-8')
         			#print phrase
-        			if phrase not in array_phrases:
-        				array_phrases.append(phrase)
+
+        			array_phrases.append(phrase)
 
         #dump array phrases into cached file
         fileobj = open(cached,"wb")
         pickle.dump(array_phrases,fileobj)
 
 
+    # print(array_phrases)
     #print array_phrases
     dict = {};
     #memset dictionary to 0
