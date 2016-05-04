@@ -1,3 +1,8 @@
+##############
+# phrase extraction tool
+# caches results using pickle, then creates dictionary and counts word frequency
+################
+
 import nltk
 import sys
 import os
