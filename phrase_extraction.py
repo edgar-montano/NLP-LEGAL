@@ -1,6 +1,17 @@
 import nltk
 import sys
 import os
+import os.path
+import pickle #caching mechanism
+
+# def picke_isEmpty(fn):
+#     try:
+#         fileobj = open(fn,"wb")
+#         return picke.load(fileobj)
+#     except EOFError:
+#         return None
+#     except IOError,e:
+#         return None
 
 def main():
     if(len(sys.argv) != 2):
@@ -17,30 +28,49 @@ def main():
     """
     chunker = nltk.RegexpParser(grammar)
 
+    cached = fn+".pickle" #checked version phrase extraction
+    #if a cached version exists we dont have to iterate and extract, just load array
 
-    speech = open(fn)
-    array_phrases = []
+    if(os.path.isfile(cached) ):
+        array_phrases = pickle.load(open(cached,"r")) #load the array list
+        # array_phrases = pickle.load(open(cached,"r")) #load the array list
 
-    for line in speech:
+    #if the file doesnt exist we have to
+    else:
+        speech = open(fn)
+        array_phrases = []
 
-    	tagged = nltk.pos_tag(nltk.word_tokenize(line))
-    	tree = chunker.parse(tagged)
+        for line in speech:
 
-    	for element in tree:
+        	tagged = nltk.pos_tag(nltk.word_tokenize(line))
+        	tree = chunker.parse(tagged)
 
-    		if type(element) is nltk.tree.Tree and element.label() == 'NP':
-    			phrase = ""
-    			for subelement in element:
-    				for token in subelement:
-    					phrase += token[0] + " "
-    			phrase = phrase[:-1].encode('utf-8')
-    			#print phrase
-    			if phrase not in array_phrases:
-    				array_phrases.append(phrase)
+        	for element in tree:
+
+        		if type(element) is nltk.tree.Tree and element.label() == 'NP':
+        			phrase = ""
+        			for subelement in element:
+        				for token in subelement:
+        					phrase += token[0] + " "
+        			phrase = phrase[:-1].encode('utf-8')
+        			#print phrase
+        			if phrase not in array_phrases:
+        				array_phrases.append(phrase)
+
+        #dump array phrases into cached file
+        fileobj = open(cached,"wb")
+        pickle.dump(array_phrases,fileobj)
 
 
 
-    print array_phrases
+    #print array_phrases
+
+    #print array_phrases
+    dict = {};
+    #memset dictionary to 0
+    for i in range(len(array_phrases)):
+        dict[array_phrases[i].lower()] = 0
+    print(dict)
 
 
 if __name__ == '__main__':
