@@ -62,9 +62,6 @@ def main():
         pickle.dump(array_phrases,fileobj)
 
 
-
-    #print array_phrases
-
     #print array_phrases
     dict = {};
     #memset dictionary to 0
@@ -76,11 +73,6 @@ def main():
             dict[key.lower()] = 1 #if phrase doesnt exist, init counter
 
     print(dict)
-
-
-
-
-    #print(dict)
 
 
 if __name__ == '__main__':
