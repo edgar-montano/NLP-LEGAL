@@ -69,8 +69,18 @@ def main():
     dict = {};
     #memset dictionary to 0
     for i in range(len(array_phrases)):
-        dict[array_phrases[i].lower()] = 0
+        key = array_phrases[i].replace(" ","_") #key friendly
+        if key in dict:
+            dict[key.lower()] += 1 #if phrase exist, increment counter
+        else:
+            dict[key.lower()] = 1 #if phrase doesnt exist, init counter
+
     print(dict)
+
+
+
+
+    #print(dict)
 
 
 if __name__ == '__main__':
