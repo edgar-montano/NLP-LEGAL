@@ -47,7 +47,7 @@ def main():
 
         for line in speech:
 
-        	tagged = nltk.pos_tag(nltk.word_tokenize(line))
+        	tagged = nltk.pos_tag(nltk.word_tokenize(line.decode('utf-8')))
         	tree = chunker.parse(tagged)
 
         	for element in tree:
