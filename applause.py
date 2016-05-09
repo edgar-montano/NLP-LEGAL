@@ -51,16 +51,7 @@ def main():
                     print(buff)
                     #print("phrase="+word)
 
-        #print(lines[0].split(" "))
-        # count = 0
-        # for token in tokens:
-        #     print(token)
 
-            # if count == 30:
-            #     exit()
-            # count += 1
-
-    # return ""
 
 
 if __name__ == '__main__':
