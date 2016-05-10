@@ -1,0 +1,27 @@
+Immigration - Increase Deportation/Border Protection
+
+Script
+Positive = (Rubio, Cruz, McConnell, Graham)
+Neutral = (Feinstein, Ryan, Sanders, Pelosi, Warren)
+Negative = (Hoyer)
+
+Real Life
+Positive = (Rubio, Cruz, McConnell)
+Neutral = (Graham, Ryan)
+Negative = (Hoyer, Warren, Pelosi, Sanders, Warren)
+
+
+------------------
+
+Terrorism - Scrutinization
+
+Script
+Postive = (Rubio, Cruz, McConnell, Ryan, Feinstein, Graham)
+Neutral = (Sanders, Warren, Hoyer, Pelosi)
+Negative = ()
+
+Real Life
+Positive = (Rubio, Cruz, McConnell, Ryan, Feinstein, Graham)
+Neutral = (Warren, Pelosi)
+Negative = (Sanders, Hoyer)
+

@@ -4,8 +4,9 @@ import json
 import xmltodict
 import nltk
 import math
+import pickle
 
-from multiprocessing import Pool, TimeoutError
+# from multiprocessing import Pool, TimeoutError
 
 
 month_to_str = {
@@ -101,7 +102,7 @@ class Representative(object):
 		return aggro_phrases
 
 	def get_grade(self,keyword):
-		
+
 		(grade,_) = self.get_relevant_bills(keyword)
 
 		return grade
@@ -112,11 +113,16 @@ class Representative(object):
 		for (_,bill) in self.bill_hash.iteritems():
 			bill_grade = bill.get_grade(keyword)
 			if bill_grade != "N/A":
-				print bill_grade
+				# print bill_grade
 				bill_array.append(bill)
 				aggro_grade += bill_grade
 
 		return (aggro_grade,bill_array)
+
+	def compare_with_speeches(self,speeches):
+		# Compares the Speeches corpus scores with the body of legistalive
+		# documents that they introduced in congres
+		pass
 
 
 def set_repr_hash(bills_array):
@@ -135,7 +141,7 @@ class Bill(object):
 		self.hr_number = hr_number
 		self.url = url
 
-		
+
 		# Title
 		self.title = data['bill']['metadata']['dublinCore']['dc:title'].split(": ")[1]
 
@@ -159,8 +165,11 @@ class Bill(object):
 		# print spo_info
 
 
-		self.sponsor = spo_info['sponsor']	
-		
+		if spo_info.get('sponsor'):
+			self.sponsor = spo_info['sponsor']
+		else:
+			self.sponsor = {"#text":"I.T. messed up"}
+
 
 		self.cosponsors = []
 		if spo_info.get('cosponsor'):
@@ -174,7 +183,7 @@ class Bill(object):
 			else:
 				self.cosponsors.append(cospon)
 
-		
+
 		# Section
 		self.headers = []
 
@@ -222,7 +231,9 @@ class Bill(object):
 
 
 
-
+	def get_content_of_section(self,section):
+		# Gets the text of the section
+		pass
 
 	def get_sponsor_name(self):
 		return self.sponsor['#text']
@@ -236,7 +247,7 @@ class Bill(object):
 				co_array.append(co['#text'])
 
 		return co_array
-				
+
 
 	def __str__(self):
 
@@ -278,7 +289,8 @@ class Bill(object):
 			"purposes",
 			"gao report",
 			"gao study",
-			"staff"
+			"staff",
+			"establishment"
 
 		]
 
@@ -303,10 +315,10 @@ class Bill(object):
 
 	def keywords(self):
 		keywords = self.title + " "
-		
+
 		for head in self.excluded_headers():
 			keywords += head + " "
-		
+
 		tokens = nltk.word_tokenize(keywords)
 
 		return tokens
@@ -333,7 +345,7 @@ class Bill(object):
 		grammar = r"""
 		    NBAR:
 		        {<NN.*|JJ|VBN>*<NN.*>}  # Nouns and Adjectives, terminated with Nouns
-		        
+
 		    NP:
 		        {<NBAR>}
 		        {<NBAR><IN><NBAR>}  # Above, connected with in/of/etc...
@@ -341,14 +353,14 @@ class Bill(object):
 		chunker = nltk.RegexpParser(grammar)
 
 
-		
+
 		for header in self.titles_and_exHeaders():
 
 			tagged = nltk.pos_tag(nltk.word_tokenize(header))
-			tree = chunker.parse(tagged)		
+			tree = chunker.parse(tagged)
 
 			for element in tree:
-				
+
 				if type(element) is nltk.tree.Tree and element.label() == 'NP':
 					phrase = ""
 					for subelement in element:
@@ -363,7 +375,7 @@ class Bill(object):
 
 	def titles_and_exHeaders(self):
 
-		headers_titles = self.excluded_headers()	
+		headers_titles = self.excluded_headers()
 		headers_titles.insert(0,self.title)
 		return headers_titles
 
@@ -381,7 +393,9 @@ class Bill(object):
 			'require',
 			'support',
 			'train',
-			'expand'
+			'expand',
+			'strength',
+			'impos',
 
 		]
 
@@ -391,6 +405,8 @@ class Bill(object):
 			'preserv',
 			'addition',
 			'eas', # ease
+			'security',
+			''
 
 
 		]
@@ -447,7 +463,7 @@ class Bill(object):
 
 		return self.grades[keyword]
 
-		
+
 
 def seperation():
 	print "------------------------------------------------------------------------------------------------------------------------------------------"
@@ -456,9 +472,14 @@ def seperation():
 bills_array = []
 congress_number = 114
 
-start = 1600
-start = 2538
-threshold = 100
+# start = 1600
+# start = 2538
+# start = 50
+# start = 2229
+# start = 2725
+# start = 2144
+start = 2300
+threshold = 5
 
 # ----------------------------------------------------------- Senate -------------------------------------------------------------------
 
@@ -480,11 +501,9 @@ for i in range(threshold):
 
 	data = xmltodict.parse(data)
 
-
-
 	if data['bill'].get('metadata'):
 
-		bills_array.append(Bill(s_number,url,data)) 
+		bills_array.append(Bill(s_number,url,data))
 
 
 
@@ -494,37 +513,36 @@ seperation()
 # ----------------------------------------------------------- House of Representatives ------------------------------------------------
 
 
-# print "House of Representatives"
+print "House of Representatives"
 
 
-# start = 2000
-# start = 3449
+start = 2000
 
-# threshold = 1
+threshold = 5
 
-# for i in range(threshold):
+for i in range(threshold):
 
-# 	hr_number = start + i
+	hr_number = start + i
 
-# 	url = 'https://www.congress.gov/%s/bills/hr%s/BILLS-%shr%sih.xml' % (congress_number,hr_number,congress_number,hr_number)
-# 	print url
+	url = 'https://www.congress.gov/%s/bills/hr%s/BILLS-%shr%sih.xml' % (congress_number,hr_number,congress_number,hr_number)
+	print url
 
-# 	try:
-# 		file = urllib2.urlopen(url)
-# 	except urllib2.HTTPError:
-# 		print "404"
-# 		continue
-
-
-# 	data = file.read()
-# 	file.close()
+	try:
+		file = urllib2.urlopen(url)
+	except urllib2.HTTPError:
+		print "404"
+		continue
 
 
-# 	data = xmltodict.parse(data)
+	data = file.read()
+	file.close()
 
-# 	if data['bill'].get('metadata'):
 
-# 		bills_array.append(Bill(hr_number,url,data)) 
+	data = xmltodict.parse(data)
+
+	if data['bill'].get('metadata'):
+
+		bills_array.append(Bill(hr_number,url,data))
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -539,7 +557,7 @@ for bill in bills_array:
 	print bill
 	print bill.url
 	print bill.get_phrases()
-	print bill.get_grade('immigration')
+	# print bill.get_grade('immigration')
 	seperation()
 
 
@@ -556,21 +574,48 @@ for bill in bills_array:
 
 
 names_of_interest = [
+	"Ms. Clinton",
 	"Mr. Sanders",
+	"Mr. McConnell",
+	"Ms. Feinstein",
+	"Mr. McCain",
 	"Ms. Pelosi",
 	"Mr. Ryan",
 	"Ms. Clark",
-	"Mr. Cruz"
+	"Mr. Cruz",
+	"Mr. Rubio",
 ]
 
 for name in names_of_interest:
 	print name
 	if USRepre_hash.get(name):
-		print USRepre_hash[name].get_grade('immigration')
+		congress_person = USRepre_hash[name]
+		print congress_person.aggregate_phrases()
+
+		# Terrorism
+		(grade_0,bills) = congress_person.get_relevant_bills('terror')
+		print grade_0
+		for b in bills:
+			print b.url
+
+
+		# Immigration
+		(grade_0,bills) = congress_person.get_relevant_bills('immigrat')
+		print grade_0
+		for b in bills:
+			print b.url
 	else:
 		print "NOT PRESENT"
 
+	seperation()
 
+# Temporary holdings to speeches
+speeches = []
 
-
-
+for name in names_of_interest:
+	if USRepre_hash.get(name):
+		congress_person = USRepre_hash[name]
+		congress_person.compare_with_speeches(speeches)
+	else:
+		print "Not present"
+	pass
