@@ -126,44 +126,40 @@ In this paper we will use natural language processing in order to extract inform
 \section{Research}
 \par{In order to analyze political speeches we needed additional research on how to approach this. Since political speeches and transcripts of these speeches are slightly different then the average text, primarily because spoken language varies different then test data, we needed an approach to analyze political speeches and identify key phrases}
 \par{One approach derived from previous research on tagged political speeches. The research paper \it{CORPS: A Corpus of Tagged Political Speeches for Persuasive Communication Processing} by Marco Guerini, Carlo Strapparava, and Oliveiero Stock, provided us with an approach to analyzing campaign speeches. This research paper provided us with a key approach on how to analyze political speeches. Since campaign speeches have indicators when the audience gives an applause, we can use applause as a breakpoint on a key note. Usually a key phrase or point they are trying to convey is stated right before an applause. This means we can narrow our search in order to find key phrases. However this technique is not entirely accurate. For instance, an applause may occur during the beginning of the speech. This usually involves the candidate going up on stage, and saying thanks. This means a majority of the speeches we analyze will have "thank you" as a key phrase. However this obstacle was easy to handle, we just simply ignore these phrases.  }
+\par{In addition we needed an approach to analyze legislative documents. Unfortunately natural language and written language, especially legislative text, have vastly different approaches to them. The premise of our approach on analyzing legislative relies on previous research conducted by Ron Van Gog and Tom M. Van Engers \it{Modeling Legislation Using Natural Language Processing.} This particular research paper describes the possibilities of translating legislative documents which is written into formal language, into an easier format to parse and identify key elements. This paper helped us identify a key aspect of exploiting the XML file format, and clever DOM tree manipulation, to increase the performance of our task. We utilized the XML section headers to give a clear and concise estimate on what might be a key phrase from a legislative document.}
 
+
+\section{Campaign Speech Analysis}
+\par{This portion of the project was probably the more difficult one. It was the least automated aspect of the project. We had to deploy various methods in order to properly analyze speech. In addition, we encountered issues with the data. It turns out that most campaign speech text made available are done automatically using various tools such as Youtube's auto-caption functionality. While this is a nice feature to supplement the actual voice, simply analyzing auto-generated documents proved to be a painstaking task since it provided too many inaccuracies. This means we had to limit our actual test data, to documents we can verify were authentic transcriptions of the speeches, rather then auto-generated text. We did this by simply checking if the grammar of the speech were noticeably ambiguous at points. For example, auto generated transcriptions often give incomplete sentences with multiple instances of a word. "The the" occurring twice when a person stutters. Manual inspect of the documents sifted through these instances. However, there is one instance of a document I would like to discuss, since even manual auto notation would have proved wrong. }
+\par{The particular campaign speech that was most difficult to analyze and add to our test group was none other then Donald Trumps's campaign speech. This was Trump's Iowa Freedom Summit speech (included in documents). Our phrase extraction program gave the following phrases a frequent phrases occurring in the document: "Ba, pa, bing". After careful analysis, (watching the entire video corresponding to this speech) we confirmed that this was in fact a phrase he stated, and he also stated multiple times. This informal language use provided us with yet another obstacle in campaign speech analysis. }
+\par{The actual approach to phrase extraction for campaign speeches was achieved using two-phase-phrase-extraction. Essentially we ran our text analyzer which found the most frequent noun phrases in the speech. The most common phrase across documents was usually persuasive words or words employed to develop certain emotions from the crowd. In addition, phrases such as "thank you" were highly common after applause. Our naive phrase extraction first extracting all of these phrases, and hashed them into a dictionary, and counted the frequencies. We then cached these results for later reference. The second phrase of extraction was used which involved similar techniques deployed in the \it{CORPS} research paper. }
+\par{The second phrase extraction technique involved exploiting the fact that we were analyzing a transcribed document, meaning: "applause", "cheers", "laughter", and occasional "boos" were embedded into the document. These served as signal points on which the speaker was conveying a key point in there speech, usually persuasive natural language techniques were employed to develop crowd sentiment towards a certain subject. Our second extraction phrase script located these points in the document, and created a buffer of the previous sentences that were stated. It's at this point we can choose to manually extract the phrases that invoked these crowd reactions OR optionally we could use our first phrase extraction tool to identify and automate this task. We choose manual extraction since it would actually give us a more accurate result then the possibility of using the first phrase extraction. }
+\par{It is at this point we identify main topics in the campaign speeches. The point of doing this phrase extraction is to identify the key points of a speech. At this point, we can cross reference multiple speeches, and find the most common phrases across all speeches, to determine the main sentiment of a specific candidate. Our task is to identify this, and search through legislative documents to see if they either backed or sponsored legislative bills, laws, or documents in which reflected on these key points they spoke about in their speeches. In short, can we trust our politician's  speech and see if they hold true to the promises they make. For example, will Cruz have pursued immigration laws or anti-terrorist laws.  (Note: our data is somewhat outdated, since now the current candidates have changed, however we still used the data as it is still relevant). }
 
 \section*{Legislative Document Analysis}
 
+\par{In order to understand the position of particular politician, we examined the legislative bills that were introduced to either the House of Representative or the Senate, depending of course on which chamber they resided in at Congress. “Congress.gov” has a fantastic database of files, all sorted in various formats, such as plain text files (.txt), as images (.pdf), and as XML files (.xml). Our script was written in python, thus we though parsing the XML files would be the easiest and most efficient file type to extract give that there are many python libraries (in our case ‘pickle’ and ‘xmltodict’) that can handle parsing xml files in a relatively neat and organized manner. We decided to include both libraries. The ‘xmltodict’ was best used for reading off the raw instance data from a direct url request (‘urllib2.urlopen’). ‘Pickle’ is used as a method to cache information, and we plan on using this for the future to avoid the time to extract the data from a url request. In either parsing method, extracting the information from the bill can be a challenge, because sorting through all the trees from the ‘xmltodict’ library requires navigating through miscellaneous fields such as “\#text”, “metadata”, “text”, “legis-body”, and “action-desc” in order to extract important information from the text, such sponsors/cosponsors, dates, and section titles. While difficult to navigate, there are conventions to how bills are formatted, thus there is a scriptable way to consistently extract the information from the tree resulting from the ‘xmltodict’ library that extracted the ‘.xml’ file. This makes it a lot easier to parse the ‘.txt’ file since while the bill conventions are still in tact, in order to consistently get the relevant information about a bill, on must keep track of relative locations and the words that were listed rather than navigating through a tree. However, right now we are only able to consistently extract the Section title of the bill given that there is a host of formatting issues to deal with on the actual content of the bill. For the time being, we are OK with that as there is lots of interesting information and phrases that we can extract from the section title. Down the road we plan on extraction the more detailed contents of the bill, potentially through the ‘.txt’ file, since a problem with the ‘xmltodict’ tree is that it embeds all the formatting content on the collective writing, while the ‘.txt’ only includes the rawest words. So in order to optimize our results, we had to implement two-phase-extraction for this portion as well. The first phase was to extract XML contents and section, and generate phrases from this, second phase was to download alternative text file and use phrase extraction on this portion.}
+
+\par{We applied this methodology to a set of House of Representatives and Senate Bills Introduced by a Congressmen. After the parsing, we started to parse the sections titles into noun phrases using NLTK, in order to extract phrases that we feel unravels the core principles of the bill. This practice excludes a lot of phrases along the way and down the road we down like to include more verbs into the mix, but we feel that in our preliminary findings we are able to extract the necessary information for our data. Once we extracted the phrases, we assigned grades to the bill relative to how a bill viewed a certain issue. We did that through having three categories of tokens (‘Base’, “Positive”, and “Negative”). Positive words were words that signaled that they were in support of a certain issue. Negative words were words that signaled that they had a negative opinion of a certain issue. Base words were words that amplified the direction in which the bill had a positive or negative opinion of an issue. Base words would also be added whenever the issue name was in the text. For instance, the “Expand Enforcement of Immigration” will have “Expand” and “Immigration” both increase the base scores, while “Enforcement” added a negative point. Since there were more negative points than positive points, the base scores counted negatively to the bills grade of immigration. If it was instead “Expand Support of Immigration”, everything would stay the same except that “Support” was a positive word, which means that the base scores adds to the positive score. In order to prevent a score on bills not relevant to an issue, we added a requirement that there should be at least one mention of the issue keyword in a section.
+}
+
+\par{Once we assigned the grades to a bills, we aggregated the scores of all the bills that a congressmen sponsored/cosponsored and assigned that grade to the congressmen. After that we categorized them into one of three categories. They were either “Positive” (overall positive opinion of a specific issue), “Negative”, (overall negative opinion of a specific issue), or “Neutral” (Aggregate score was to 0 or was not part of any bill that mentioned a specified issue). We evaluated this set with a manual categorization, which is based on their total history on an issue, rather than a measurement on a specified collection of bills introduced before the congress floor, on 10 congressmen of interest on two issue, “Immigration” and “Terrorism”.}
+
+\section{Evaluation}
+\par{Some things that we noticed from our evaluation was that our program was very good at placing congressmen into the “Positive” Category. The ones that were placed in the Neutral category generally contained congressmen that were usually either “positive” or “negative”. As we investigated further we found out that this was due to the fact that the ones that we categorized as neutral generally expressed their opinion on an issue through commentary and votes on an issue rather than personally introduce a bill before congress. There was also not as many congressmen placed in the “Negative” category, since even if they expressed passionate negative responses to a certain issue, usually the most powerful way to express that is through votes rather than bring forth original legislation.}
+
+
 \par{}
 
+\section{P as in Performance based caching through Pickles}
+\par{To maximize our results we used pickles! And no, not the food. We used a caching library, that allowed us to cache array,vector, and dictionary values. Instead of iterating through 2000+ documents each time we wanted to extract phrases and cross-reference them, we had our scripts do this task once, and then store the results in a .pickle file. This pickle file could later be loaded with the extracted phrases so we can cross reference for later use with a significant increase in speedup. The actual task of sifting through documents rely on our document downloader which makes an increasing amount of HTTP requests to congress.gov, from there, it downloads scripts, the issue at hand was obtaining the results from an extensive list of legislative documents, this is solved through caching with pickles, allowing us to develop our own library of common phrases. The use of pickles actually increased the performance of cross-referencing by more than double.  }
 
-\begin{quote}
-\begin{verbatim}
-However, this record of the solar nebula may have been
-partly erased by the complex history of the meteorite
-parent bodies, which includes collision-induced shock,
-thermal metamorphism, and aqueous alteration
-({\it 1, 2, 5--7\/}).
-\end{verbatim}
-\end{quote}
+\section{Our System and the future of politics}
+\par{Our system was met with various challenges, but we were able to efficiently approach each task with a rather dynamic approach. So what does this mean for politics? Well if provided with enough data, assuming transcripts become more widely available, we can develop a machine learning algorithm to actually detect, annotate, and extract information from speeches. It could then use various ML techniques. Or maybe an even practical and less involved possibility is using our phrases extracted, to make a sentence generator. We developed our system so it could be modular and adapt to different scenarios. Included in our git repository is a module.config file, that allows you to run plugin files that you can use to develop in addition to our system. For example, you can have the config file first execute a phrase extraction operation, and use pickle to dump these files and create a Donald Trump-inspired sentence generator or language. Included in this project is an example of such functionality.}
+\par{I think the highlight and pride of how versatile our system is, is through the demonstration of TrumpSpeak. A python script, Donald Trump inspired language. The language is limited with the following restrictions: 1. Every sentence MUST begin with "I Donald Trump," Followed by a verb, and a noun phrase we extracted from his speeches.}
 
 
-\noindent Compiled, the last two lines of the code above, of course, would give notecalls in {\it Science\/} style:
 
-\begin{quote}
-\ldots thermal metamorphism, and aqueous alteration ({\it 1, 2, 5--7\/}).
-\end{quote}
-
-Under the same logic, the author could set up his or her reference list as a simple enumeration,
-
-\begin{quote}
-\begin{verbatim}
-{\bf References and Notes}
-
-\begin{enumerate}
-\item G. Gamow, {\it The Constitution of Atomic Nuclei
-and Radioactivity\/} (Oxford Univ. Press, New York, 1931).
-\item W. Heisenberg and W. Pauli, {\it Zeitschr.\ f.\ 
-Physik\/} {\bf 56}, 1 (1929).
-\end{enumerate}
-\end{verbatim}
-\end{quote}
 
 \noindent yielding
 
@@ -171,191 +167,11 @@ Physik\/} {\bf 56}, 1 (1929).
 {\bf References and Notes}
 
 \begin{enumerate}
-\item G. Gamow, {\it The Constitution of Atomic Nuclei and
-Radioactivity\/} (Oxford Univ. Press, New York, 1931).
-\item W. Heisenberg and W. Pauli, {\it Zeitschr.\ f.\ Physik} {\bf 56},
-1 (1929).
+\item Marco Guerini, Carlo Strapparava, Oliviero Stock, {\it CORPS: A Corpus of Tagged Political Speeches for Persuasive Communication Processing\/} (Journal of Information Technology and Politics, Vol.5(1) 2008).
+\item Ron Van Gog, Tom Van Engers, {\it Modeling Legislation Using Natural Language Processing},
+
 \end{enumerate}
 \end{quote}
-
-That's not a solution that's likely to appeal to everyone, however ---
-especially not to users of B{\small{IB}}\TeX\ \cite{inclme}.  If you
-are a B{\small{IB}}\TeX\ user, we suggest that you use the
-\texttt{Science.bst} bibliography style file and the
-\texttt{scicite.sty} package, both of which we are downloadable from our author help site
-(http://www.sciencemag.org/about/authors/prep/TeX\_help/).  You can also
-generate your reference lists by using the list environment
-\texttt{\{thebibliography\}} at the end of your source document; here
-again, you may find the \texttt{scicite.sty} file useful.
-
-Whether you use B{\small{IB}}\TeX\ or \texttt{\{thebibliography\}}, be
-very careful about how you set up your in-text reference calls and
-notecalls.  In particular, observe the following requirements:
-
-\begin{enumerate}
-\item Please follow the style for references outlined at our author
-  help site and embodied in recent issues of {\it Science}.  Each
-  citation number should refer to a single reference; please do not
-  concatenate several references under a single number.
-\item Please cite your references and notes in text {\it only\/} using
-  the standard \LaTeX\ \verb+\cite+ command, not another command
-  driven by outside macros.
-\item Please separate multiple citations within a single \verb+\cite+
-  command using commas only; there should be {\it no space\/}
-  between reference keynames.  That is, if you are citing two
-  papers whose bibliography keys are \texttt{keyname1} and
-  \texttt{keyname2}, the in-text cite should read
-  \verb+\cite{keyname1,keyname2}+, {\it not\/}
-  \verb+\cite{keyname1, keyname2}+.
-\end{enumerate}
-
-\noindent Failure to follow these guidelines could lead
-to the omission of the references in an accepted paper when the source
-file is translated to Word via HTML.
-
-\section*{Handling Math, Tables, and Figures}
-
-Following are a few things to keep in mind in coding equations,
-tables, and figures for submission to {\it Science}.
-
-\paragraph*{In-line math.}  The utility that we use for converting
-from \LaTeX\ to HTML handles in-line math relatively well.  It is best
-to avoid using built-up fractions in in-line equations, and going for
-the more boring ``slash'' presentation whenever possible --- that is,
-for \verb+$a/b$+ (which comes out as $a/b$) rather than
-\verb+$\frac{a}{b}$+ (which compiles as $\frac{a}{b}$).  Likewise,
-HTML isn't tooled to handle certain overaccented special characters
-in-line; for $\hat{\alpha}$ (coded \verb+$\hat{\alpha}$+), for
-example, the HTML translation code will return [\^{}$(\alpha)$].
-Don't drive yourself crazy --- but if it's possible to avoid such
-constructs, please do so.  Please do not code arrays or matrices as
-in-line math; display them instead.  And please keep your coding as
-\TeX-y as possible --- avoid using specialized math macro packages
-like \texttt{amstex.sty}.
-
-\paragraph*{Displayed math.} Our HTML converter sets up \TeX\
-displayed equations using nested HTML tables.  That works well for an
-HTML presentation, but Word chokes when it comes across a nested
-table in an HTML file.  We surmount that problem by simply cutting the
-displayed equations out of the HTML before it's imported into Word,
-and then replacing them in the Word document using either images or
-equations generated by a Word equation editor.  Strictly speaking,
-this procedure doesn't bear on how you should prepare your manuscript
---- although, for reasons best consigned to a note \cite{nattex}, we'd
-prefer that you use native \TeX\ commands within displayed-math
-environments, rather than \LaTeX\ sub-environments.
-
-\paragraph*{Tables.}  The HTML converter that we use seems to handle
-reasonably well simple tables generated using the \LaTeX\
-\texttt{\{tabular\}} environment.  For very complicated tables, you
-may want to consider generating them in a word processing program and
-including them as a separate file.
-
-\paragraph*{Figures.}  Figure callouts within the text should not be
-in the form of \LaTeX\ references, but should simply be typed in ---
-that is, \verb+(Fig. 1)+ rather than \verb+\ref{fig1}+.  For the
-figures themselves, treatment can differ depending on whether the
-manuscript is an initial submission or a final revision for acceptance
-and publication.  For an initial submission and review copy, you can
-use the \LaTeX\ \verb+{figure}+ environment and the
-\verb+\includegraphics+ command to include your PostScript figures at
-the end of the compiled PostScript file.  For the final revision,
-however, the \verb+{figure}+ environment should {\it not\/} be used;
-instead, the figure captions themselves should be typed in as regular
-text at the end of the source file (an example is included here), and
-the figures should be uploaded separately according to the Art
-Department's instructions.
-
-
-\section*{What to Send In}
-
-What you should send to {\it Science\/} will depend on the stage your manuscript is in:
-
-\begin{itemize}
-\item {\bf Important:} If you're sending in the initial submission of
-  your manuscript (that is, the copy for evaluation and peer review),
-  please send in {\it only\/} a PostScript or PDF version of the
-  compiled file (including figures).  Please do not send in the \TeX\ 
-  source, \texttt{.sty}, \texttt{.bbl}, or other associated files with
-  your initial submission.  (For more information, please see the
-  instructions at our Web submission site,
-  http://www.submit2science.org/ .)
-\item When the time comes for you to send in your revised final
-  manuscript (i.e., after peer review), we require that you include
-  all source files and generated files in your upload.  Thus, if the
-  name of your main source document is \texttt{ltxfile.tex}, you
-  need to include:
-\begin{itemize}
-\item \texttt{ltxfile.tex}.
-\item \texttt{ltxfile.aux}, the auxilliary file generated by the
-  compilation.
-\item A PostScript file (compiled using \texttt{dvips} or some other
-  driver) of the \texttt{.dvi} file generated from
-  \texttt{ltxfile.tex}, or a PDF file distilled from that
-  PostScript.  You do not need to include the actual \texttt{.dvi}
-  file in your upload.
-\item From B{\small{IB}}\TeX\ users, your bibliography (\texttt{.bib})
-  file, {\it and\/} the generated file \texttt{ltxfile.bbl} created
-  when you run B{\small{IB}}\TeX.
-\item Any additional \texttt{.sty} and \texttt{.bst} files called by
-  the source code (though, for reasons noted earlier, we {\it
-    strongly\/} discourage the use of such files beyond those
-  mentioned in this document).
-\end{itemize}
-\end{itemize}
-
-% Your references go at the end of the main text, and before the
-% figures.  For this document we've used BibTeX, the .bib file
-% scibib.bib, and the .bst file Science.bst.  The package scicite.sty
-% was included to format the reference numbers according to *Science*
-% style.
-
-
-\bibliography{scibib}
-
-\bibliographystyle{Science}
-
-
-
-% Following is a new environment, {scilastnote}, that's defined in the
-% preamble and that allows authors to add a reference at the end of the
-% list that's not signaled in the text; such references are used in
-% *Science* for acknowledgments of funding, help, etc.
-
-\begin{scilastnote}
-\item We've included in the template file \texttt{scifile.tex} a new
-environment, \texttt{\{scilastnote\}}, that generates a numbered final
-citation without a corresponding signal in the text.  This environment
-can be used to generate a final numbered reference containing
-acknowledgments, sources of funding, and the like, per {\it Science\/}
-style.
-\end{scilastnote}
-
-
-
-
-% For your review copy (i.e., the file you initially send in for
-% evaluation), you can use the {figure} environment and the
-% \includegraphics command to stream your figures into the text, placing
-% all figures at the end.  For the final, revised manuscript for
-% acceptance and production, however, PostScript or other graphics
-% should not be streamed into your compliled file.  Instead, set
-% captions as simple paragraphs (with a \noindent tag), setting them
-% off from the rest of the text with a \clearpage as shown  below, and
-% submit figures as separate files according to the Art Department's
-% instructions.
-
-
-\clearpage
-
-\noindent {\bf Fig. 1.} Please do not use figure environments to set
-up your figures in the final (post-peer-review) draft, do not include graphics in your
-source code, and do not cite figures in the text using \LaTeX\
-\verb+\ref+ commands.  Instead, simply refer to the figure numbers in
-the text per {\it Science\/} style, and include the list of captions at
-the end of the document, coded as ordinary paragraphs as shown in the
-\texttt{scifile.tex} template file.  Your actual figure files should
-be submitted separately.
 
 
 
