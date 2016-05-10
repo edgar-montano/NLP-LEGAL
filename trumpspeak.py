@@ -17,9 +17,18 @@ def main():
         print("\t This is a purely educational program that demonstrates natural language processing in the field of politics")
 
     #loads phrases extracted from a trump speech
-    trump_nouns = pickle.load(sys.argv[1],"rb")
-    randNum = randint(0,len(trump_nouns))
-    print(randNum)
+    with open (sys.argv[1],"rb") as fn:
+        trump_nouns = pickle.load(fn)
+        randNum = randint(0,len(trump_nouns))
+        print("I, Donald Trump will get "+trump_nouns[randNum])
+        randNum = randint(0,len(trump_nouns))
+        print("I, Donald Trump will be "+trump_nouns[randNum])
+        randNum = randint(0,len(trump_nouns))
+        print("I, Donald Trump can do "+trump_nouns[randNum])
+        randNum = randint(0,len(trump_nouns))
+        print("I, Donald Trump will make "+trump_nouns[randNum])
+        randNum = randint(0,len(trump_nouns))
+        print("I, Donald Trump will try "+trump_nouns[randNum])
 
 
 
