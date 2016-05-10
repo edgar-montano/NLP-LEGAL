@@ -81,5 +81,20 @@ def main():
     print(dict)
 
 
+    keyword_array = ['terror']
+    score_array = []
+
+
+    for keyword in keyword_array:
+        aggro_score = 0 # Aggregate Score
+        for (phrase,score) in dict.iteritems():
+            if keyword in phrase:
+                aggro_score += score
+        score_array.append(aggro_score)
+
+    print score_array
+
+
+
 if __name__ == '__main__':
     main()
